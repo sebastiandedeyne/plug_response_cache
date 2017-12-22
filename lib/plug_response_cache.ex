@@ -9,8 +9,7 @@ defmodule PlugResponseCache do
     })
   end
 
-  def call(conn, %{enabled: false}),
-    do: miss(conn, :disabled)
+  def call(conn, %{enabled: false}), do: miss(conn, :disabled)
 
   def call(conn, %{profile: profile} = options) do
     case profile.cache_request?(conn) do

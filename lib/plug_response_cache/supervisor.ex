@@ -4,6 +4,6 @@ defmodule PlugResponseCache.Supervisor do
 
   def start(_type, _args) do
     [supervisor(PlugResponseCache.Cache, [])]
-    |> Supervisor.start_link([strategy: :one_for_one])
+    |> Supervisor.start_link(strategy: :one_for_one)
   end
 end
