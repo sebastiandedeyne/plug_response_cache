@@ -76,6 +76,29 @@ defmodule PlugResponseCacheTest do
     assert conn.private[:response_cache] == {:miss, :response_rejected}
   end
 
+  test "the default profile accepts an expiration time in minutes" do
+    options = PlugResponseCache.init(expiration_time: 5)
+
+    first_conn =
+      build_conn("GET", "/the-default-profile-accepts-an-expiration-time-in-minutes")
+      |> resp(200, "Foo")
+      |> PlugResponseCache.call(options)
+      |> send_resp()
+
+    assert first_conn.private[:response_cache] == {:miss, :cold}
+
+    second_conn =
+      build_conn("GET", "/the-default-profile-accepts-an-expiration-time-in-minutes")
+      |> resp(200, "Bar")
+      |> PlugResponseCache.call(options)
+
+    {:hit, expires} = second_conn.private[:response_cache]
+
+    expires_from_now = DateTime.diff(expires, DateTime.utc_now())
+
+    assert round(expires_from_now / 60) == 5
+  end
+
   defp build_conn(method, path, params_or_body \\ nil) do
     Plug.Adapters.Test.Conn.conn(%Conn{}, method, path, params_or_body)
   end

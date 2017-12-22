@@ -9,8 +9,8 @@ defmodule PlugResponseCache.Cache do
     GenServer.call(__MODULE__, {:get, conn.request_path})
   end
 
-  def set(conn) do
-    GenServer.cast(__MODULE__, {:set, conn.request_path, {conn.status, conn.resp_body}})
+  def set(conn, expires) do
+    GenServer.cast(__MODULE__, {:set, conn.request_path, {conn.status, conn.resp_body, expires}})
     conn
   end
 
@@ -24,6 +24,7 @@ defmodule PlugResponseCache.Cache do
   end
 
   def handle_call({:get, path}, _from, nil) do
+    # Todo: Return a miss if the hit is expired.
     case :ets.lookup(:response_cache, path) do
       [{_, response} | _] -> {:reply, response, nil}
       [] -> {:reply, :miss, nil}
@@ -35,8 +36,8 @@ defmodule PlugResponseCache.Cache do
     {:ok, nil}
   end
 
-  def handle_cast({:set, path, {status, body}}, nil) do
-    :ets.insert(:response_cache, {path, {status, body}})
+  def handle_cast({:set, path, {status, body, expires}}, nil) do
+    :ets.insert(:response_cache, {path, {status, body, expires}})
     {:noreply, nil}
   end
 
