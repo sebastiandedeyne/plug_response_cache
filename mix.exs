@@ -1,28 +1,46 @@
-defmodule ResponseCache.MixProject do
+defmodule PlugResponseCache.MixProject do
   use Mix.Project
+
+  @version "0.1.0"
 
   def project do
     [
       app: :response_cache,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.5",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      description: "A plug to cache an entire response.",
+      package: package(),
+      deps: deps(),
+      docs: [
+        extras: ["README.md"],
+        main: "readme",
+        source_ref: "v#{@version}",
+        source_url: "https://github.com/sebastiandedeyne/plug_response_cache"
+      ]
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {ResponseCache.Supervisor, []}
+      mod: {PlugResponseCache.Supervisor, []}
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
+  defp package do
+    [
+      name: :plug_response_cache,
+      files: ["lib", "mix.exs", "README.md", "LICENSE"],
+      maintainers: ["Sebastian De Deyne"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/sebastiandedeyne/plug_response_cache"}
+    ]
+  end
+
   defp deps do
     [
-      {:plug, "~> 1.4.0"}
+      {:plug, "~> 1.4.0"},
+      {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
 end

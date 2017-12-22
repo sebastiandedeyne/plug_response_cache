@@ -1,11 +1,11 @@
-defmodule ResponseCache do
+defmodule PlugResponseCache do
   import Plug.Conn
-  alias ResponseCache.Cache
+  alias PlugResponseCache.Cache
 
   def init(options) do
     Enum.into(options, %{
       enabled: true,
-      profile: ResponseCache.Profiles.Default
+      profile: PlugResponseCache.Profiles.Default
     })
   end
 

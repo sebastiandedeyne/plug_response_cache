@@ -1,5 +1,5 @@
-defmodule ResponseCache.Profiles.Default do
-  @behaviour ResponseCache.Profile
+defmodule PlugResponseCache.Profiles.Default do
+  @behaviour PlugResponseCache.Profile
 
   alias Plug.Conn
 

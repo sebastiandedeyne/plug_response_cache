@@ -1,4 +1,4 @@
-defmodule ResponseCache.Cache do
+defmodule PlugResponseCache.Cache do
   use GenServer
 
   def start_link do
