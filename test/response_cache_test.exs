@@ -1,16 +1,16 @@
 defmodule ResponseCacheTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Plug.Conn
-  import Supervisor.Spec
   alias Plug.Conn
   alias ResponseCache
-  alias ResponseCache.Profiles.AllGetRequests
 
   test "the default profile caches a succesful GET request" do
+    options = ResponseCache.init([])
+
     first_conn =
-      build_conn("GET", "/")
+      build_conn("GET", "/the-default-profile-caches-a-succesful-get-request")
       |> resp(200, "Foo")
-      |> ResponseCache.call(profile: AllGetRequests, enabled: true)
+      |> ResponseCache.call(options)
 
     # The connection should't be sent since it's the cache's first request.
     assert first_conn.state == :set
@@ -21,9 +21,9 @@ defmodule ResponseCacheTest do
     assert first_conn.private[:response_cache] == {:miss, :cold}
 
     second_conn =
-      build_conn("GET", "/")
+      build_conn("GET", "/the-default-profile-caches-a-succesful-get-request")
       |> resp(200, "Bar")
-      |> ResponseCache.call(profile: AllGetRequests, enabled: true)
+      |> ResponseCache.call(options)
 
     # Since we're expecting to have something in the cache, the response should
     # already be sent, because the response cache should halt the plug pipeline.
@@ -33,31 +33,47 @@ defmodule ResponseCacheTest do
   end
 
   test "the response cache does nothing when disabled" do
+    options = ResponseCache.init(enabled: false)
+
     first_conn =
-      build_conn("GET", "/")
+      build_conn("GET", "/the-response-cache-does-nothing-when-disabled")
       |> resp(200, "Foo")
-      |> ResponseCache.call(enabled: false)
+      |> ResponseCache.call(options)
       |> send_resp()
 
     assert first_conn.private[:response_cache] == {:miss, :disabled}
 
     second_conn =
-      build_conn("GET", "/")
+      build_conn("GET", "/the-response-cache-does-nothing-when-disabled")
       |> resp(200, "Bar")
-      |> ResponseCache.call(enabled: false)
+      |> ResponseCache.call(options)
 
     assert second_conn.private[:response_cache] == {:miss, :disabled}
     assert second_conn.resp_body == "Bar"
   end
 
   test "the default profile only caches GET requests" do
+    options = ResponseCache.init([])
+
     conn =
-      build_conn("POST", "/")
+      build_conn("POST", "/the-default-profile-only-caches-get-requests")
       |> resp(200, "")
-      |> ResponseCache.call(profile: AllGetRequests, enabled: true)
+      |> ResponseCache.call(options)
       |> send_resp()
 
-    assert conn.private[:response_cache] == {:miss, :rejected}
+    assert conn.private[:response_cache] == {:miss, :request_rejected}
+  end
+
+  test "the default profile only caches successful requests" do
+    options = ResponseCache.init([])
+
+    conn =
+      build_conn("GET", "/the-default-profile-only-caches-successful-requests")
+      |> resp(500, "")
+      |> ResponseCache.call(options)
+      |> send_resp()
+
+    assert conn.private[:response_cache] == {:miss, :response_rejected}
   end
 
   defp build_conn(method, path, params_or_body \\ nil) do
