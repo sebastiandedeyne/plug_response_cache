@@ -24,10 +24,18 @@ defmodule PlugResponseCache.Cache do
   end
 
   def handle_call({:get, path}, _from, nil) do
-    # Todo: Return a miss if the hit is expired.
     case :ets.lookup(:response_cache, path) do
-      [{_, response} | _] -> {:reply, response, nil}
-      [] -> {:reply, :miss, nil}
+      [{_, response} | _] ->
+        {_, _, expiration_time} = response
+        cond do
+          expiration_time == :never -> {:reply, response, nil}
+          DateTime.diff(expiration_time, DateTime.utc_now()) > 0 -> {:reply, response, nil}
+          true ->
+            {:reply, {:miss, :expired}, nil}
+        end
+
+      [] ->
+        {:reply, {:miss, :cold}, nil}
     end
   end
 

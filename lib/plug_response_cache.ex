@@ -23,10 +23,10 @@ defmodule PlugResponseCache do
 
   defp send_cached(conn, %{profile: profile} = options) do
     case Cache.get(conn) do
-      :miss ->
+      {:miss, reason} ->
         register_before_send(conn, fn conn ->
           case profile.cache_response?(conn, options) do
-            true -> cache_response(conn, options)
+            true -> cache_response(conn, reason, options)
             false -> miss(conn, :response_rejected)
           end
         end)
@@ -39,12 +39,12 @@ defmodule PlugResponseCache do
     end
   end
 
-  defp cache_response(conn, %{profile: profile} = options) do
+  defp cache_response(conn, miss_reason, %{profile: profile} = options) do
     expires = profile.expires(conn, options)
 
     conn
     |> Cache.set(expires)
-    |> miss(:cold)
+    |> miss(miss_reason)
   end
 
   defp miss(conn, reason) do

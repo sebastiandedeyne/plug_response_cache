@@ -99,6 +99,28 @@ defmodule PlugResponseCacheTest do
     assert round(expires_from_now / 60) == 5
   end
 
+  @tag :current
+  test "the response cache returns a miss if the hit is expired" do
+    options = PlugResponseCache.init(expiration_time: 0)
+
+    first_conn =
+      build_conn("GET", "/the-response-cache-returns-a-miss-if-the-hit-is-expired")
+      |> resp(200, "Foo")
+      |> PlugResponseCache.call(options)
+      |> send_resp()
+
+    assert first_conn.private[:response_cache] == {:miss, :cold}
+
+    second_conn =
+      build_conn("GET", "/the-response-cache-returns-a-miss-if-the-hit-is-expired")
+      |> resp(200, "Bar")
+      |> PlugResponseCache.call(options)
+      |> send_resp()
+
+    assert second_conn.private[:response_cache] == {:miss, :expired}
+    assert second_conn.resp_body == "Bar"
+  end
+
   defp build_conn(method, path, params_or_body \\ nil) do
     Plug.Adapters.Test.Conn.conn(%Conn{}, method, path, params_or_body)
   end
