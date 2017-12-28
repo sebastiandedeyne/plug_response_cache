@@ -32,7 +32,7 @@ defmodule PlugResponseCache.Cache do
           expiration_time == :never ->
             {:reply, response, nil}
 
-          DateTime.diff(expiration_time, DateTime.utc_now()) > 0 ->
+          expiration_time - :os.system_time(:seconds) > 0 ->
             {:reply, response, nil}
 
           true ->
