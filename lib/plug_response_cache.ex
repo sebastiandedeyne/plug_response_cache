@@ -3,10 +3,9 @@ defmodule PlugResponseCache do
   alias PlugResponseCache.Cache
 
   def init(options) do
-    Enum.into(options, %{
-      enabled: true,
-      profile: PlugResponseCache.Profiles.Default
-    })
+    Application.get_all_env(:response_cache)
+    |> Keyword.merge(options)
+    |> Enum.into(%{})
   end
 
   def call(conn, %{enabled: false}), do: miss(conn, :disabled)

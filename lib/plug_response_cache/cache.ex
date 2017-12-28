@@ -27,9 +27,14 @@ defmodule PlugResponseCache.Cache do
     case :ets.lookup(:response_cache, path) do
       [{_, response} | _] ->
         {_, _, expiration_time} = response
+
         cond do
-          expiration_time == :never -> {:reply, response, nil}
-          DateTime.diff(expiration_time, DateTime.utc_now()) > 0 -> {:reply, response, nil}
+          expiration_time == :never ->
+            {:reply, response, nil}
+
+          DateTime.diff(expiration_time, DateTime.utc_now()) > 0 ->
+            {:reply, response, nil}
+
           true ->
             {:reply, {:miss, :expired}, nil}
         end
