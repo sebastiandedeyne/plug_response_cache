@@ -99,7 +99,6 @@ defmodule PlugResponseCacheTest do
     assert round(expires_from_now / 60) == 5
   end
 
-  @tag :current
   test "the response cache returns a miss if the hit is expired" do
     options = PlugResponseCache.init(expiration_time: 0)
 
