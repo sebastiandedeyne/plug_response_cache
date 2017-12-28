@@ -1,6 +1,10 @@
 defmodule PlugResponseCache do
+  @type miss :: {:miss, :cold}
+              | {:miss, :expired}
+              | {:miss, :request_rejected}
+              | {:miss, :response_rejected}
+
   import Plug.Conn
-  alias PlugResponseCache.Cache
 
   def init(options) do
     Application.get_all_env(:response_cache)
@@ -17,11 +21,14 @@ defmodule PlugResponseCache do
     end
   end
 
-  def clear, do: Cache.clear()
-  def clear(options), do: Cache.clear(options)
+  def clear, do: clear([])
+
+  def clear(options) do
+    Application.get_env(:response_cache, :store).clear(options)
+  end
 
   defp send_cached(conn, %{profile: profile} = options) do
-    case Cache.get(conn) do
+    case Application.get_env(:response_cache, :store).get(conn) do
       {:miss, reason} ->
         register_before_send(conn, fn conn ->
           case profile.cache_response?(conn, options) do
@@ -42,7 +49,7 @@ defmodule PlugResponseCache do
     expires = profile.expires(conn, options)
 
     conn
-    |> Cache.set(expires)
+    |> Application.get_env(:response_cache, :store).set(expires)
     |> miss(miss_reason)
   end
 

@@ -1,4 +1,6 @@
-defmodule PlugResponseCache.Cache do
+defmodule PlugResponseCache.Stores.Ets do
+  @behaviour PlugResponseCache.Store
+
   use GenServer
 
   def start_link do

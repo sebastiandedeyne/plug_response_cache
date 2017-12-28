@@ -3,7 +3,7 @@ defmodule PlugResponseCache.Supervisor do
   import Supervisor.Spec, warn: false
 
   def start(_type, _args) do
-    [supervisor(PlugResponseCache.Cache, [])]
+    [supervisor(PlugResponseCache.Stores.Ets, [])]
     |> Supervisor.start_link(strategy: :one_for_one)
   end
 end

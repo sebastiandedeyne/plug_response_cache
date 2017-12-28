@@ -4,7 +4,7 @@
 [![Hex.pm](https://img.shields.io/hexpm/dt/plug_response_cache.svg)](https://hex.pm/packages/plug_response_cache)
 [![Travis](https://img.shields.io/travis/sebastiandedeyne/plug_response_cache.svg)](https://travis-ci.org/sebastiandedeyne/plug_response_cache)
 
-**TODO: Add description**
+A highly-configurable plug module to cache entire responses.
 
 ## Installation
 
