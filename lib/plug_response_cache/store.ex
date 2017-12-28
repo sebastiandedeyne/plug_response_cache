@@ -5,7 +5,6 @@ defmodule PlugResponseCache.Store do
   """
   @callback get(Plug.Conn.t()) :: Plug.Conn.t() | PlugResponseCache.miss()
 
-
   @doc """
   Save a response to the cache. The second argument is an expiration time in the
   UTC timezone. If a response should never expire, the expiration time is
