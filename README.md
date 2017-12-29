@@ -173,7 +173,7 @@ This package is based on the Laravel (PHP) [response cache package](https://gith
 
 ## Alternative libraries
 
-There are two similar libraries on Hex I know of.
+There are two similar Elixir libraries I know of:
 
 - [mneudert/plug_pagecache](https://github.com/mneudert/plug_pagecache) - Also supports an Agent cache out of the box
 - [andreapavoni/plug_ets_cache](https://github.com/andreapavoni/plug_ets_cache) - Has more granular ttl configuration
