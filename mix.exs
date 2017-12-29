@@ -1,11 +1,11 @@
 defmodule PlugResponseCache.MixProject do
   use Mix.Project
 
-  @version "0.0.1"
+  @version "0.0.2"
 
   def project do
     [
-      app: :response_cache,
+      app: :plug_response_cache,
       version: @version,
       elixir: "~> 1.5",
       start_permanent: Mix.env() == :prod,

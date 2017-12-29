@@ -6,8 +6,15 @@ defmodule PlugResponseCache do
 
   import Plug.Conn
 
+  @defaults [
+    enabled: true,
+    store: PlugResponseCache.Stores.Ets,
+    profile: PlugResponseCache.Profiles.Default
+  ]
+
   def init(options) do
-    Application.get_all_env(:response_cache)
+    @defaults
+    |> Keyword.merge(Application.get_all_env(:plug_response_cache))
     |> Keyword.merge(options)
     |> Enum.into(%{})
   end
@@ -23,7 +30,7 @@ defmodule PlugResponseCache do
   end
 
   defp send_cached(conn, %{profile: profile} = options) do
-    case Application.get_env(:response_cache, :store).get(conn) do
+    case Application.get_env(:plug_response_cache, :store).get(conn) do
       {:hit, {status, body, expires}} ->
         conn
         |> hit(expires)
@@ -45,7 +52,7 @@ defmodule PlugResponseCache do
     expires = profile.expires(conn, options)
 
     conn
-    |> Application.get_env(:response_cache, :store).set(expires)
+    |> Application.get_env(:plug_response_cache, :store).set(expires)
     |> miss(miss_reason)
   end
 
