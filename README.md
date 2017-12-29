@@ -89,7 +89,7 @@ It's not recommended to configure the profile & store like this because they mig
 
 ### Profiles
 
-Profiles are the heart of PlugResponseCache's configurability. They determine _if_ and for _how long_ a response should be cached. The default profile caches all succesfull GET requests for a configurable amount of minutes. For a full example implementation, refer to [`PlugResponseCache.Profiles.Default`](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Profiles.Default.html).
+Profiles are the heart of PlugResponseCache's configurability. They determine _if_ and for _how long_ a response should be cached. The default profile caches all succesfull GET requests for a configurable amount of minutes. For a full example implementation, take a look at the [`PlugResponseCache.Profiles.Default` module](https://github.com/sebastiandedeyne/plug_response_cache/blob/master/lib/plug_response_cache/profiles/default.ex).
 
 With `cache_request?` you can choose whether or not to retrieve a cached response, or cache it if the cache is cold. Here we'll set up our profile to only cache GET requests.
 
@@ -145,6 +145,8 @@ Refer to the [`Profile` behaviour's documentation](https://hexdocs.pm/plug_respo
 ### Stores
 
 Stores determine _where_ a response should be cached. By default, responses are stored in an ETS table.
+
+For a full example implementation, take a look at the [`PlugResponseCache.Stores.Ets` module](https://github.com/sebastiandedeyne/plug_response_cache/blob/master/lib/plug_response_cache/stores/ets.ex).
 
 Refer to the [`Store` behaviour's documentation](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Store.html) for a more detailed explanation of the various callbacks.
 
