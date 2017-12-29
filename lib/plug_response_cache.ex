@@ -12,25 +12,24 @@ defmodule PlugResponseCache do
     profile: PlugResponseCache.Profiles.Default
   ]
 
-  def init(options) do
+  def init(opts) do
     @defaults
-    |> Keyword.merge(Application.get_all_env(:plug_response_cache))
-    |> Keyword.merge(options)
+    |> Keyword.merge(opts)
     |> Enum.into(%{})
   end
 
   def call(conn, %{enabled: false}), do: miss(conn, :disabled)
 
-  def call(conn, %{profile: profile} = options) do
-    if profile.cache_request?(conn, options) do
-      send_cached(conn, options)
+  def call(conn, opts) do
+    if opts.profile.cache_request?(conn, opts) do
+      send_cached(conn, opts)
     else
       miss(conn, :request_rejected)
     end
   end
 
-  defp send_cached(conn, %{profile: profile, store: store} = options) do
-    case store.get(conn) do
+  defp send_cached(conn, opts) do
+    case opts.store.get(conn) do
       {:hit, {status, body, expires}} ->
         conn
         |> hit(expires)
@@ -39,8 +38,8 @@ defmodule PlugResponseCache do
 
       {:miss, reason} ->
         register_before_send(conn, fn conn ->
-          if profile.cache_response?(conn, options) do
-            cache_response(conn, reason, options)
+          if opts.profile.cache_response?(conn, opts) do
+            cache_response(conn, reason, opts)
           else
             miss(conn, :response_rejected)
           end
@@ -48,11 +47,11 @@ defmodule PlugResponseCache do
     end
   end
 
-  defp cache_response(conn, miss_reason, %{profile: profile, store: store} = options) do
-    expires = profile.expires(conn, options)
+  defp cache_response(conn, miss_reason, opts) do
+    expires = opts.profile.expires(conn, opts)
 
     conn
-    |> store.set(expires)
+    |> opts.store.set(expires)
     |> miss(miss_reason)
   end
 
