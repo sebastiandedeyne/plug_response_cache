@@ -27,22 +27,18 @@ defmodule PlugResponseCache.Stores.Ets do
 
   def handle_call({:get, path}, _from, nil) do
     case :ets.lookup(:response_cache, path) do
-      [{_, response} | _] ->
-        {_, _, expiration_time} = response
+      [{_, response} | _] -> {:reply, response_if_alive(response), nil}
+      [] -> {:reply, {:miss, :cold}, nil}
+    end
+  end
 
-        cond do
-          expiration_time == :never ->
-            {:reply, response, nil}
+  defp response_if_alive({_, _, :never} = response), do: {:hit, response}
 
-          expiration_time - :os.system_time(:seconds) > 0 ->
-            {:reply, response, nil}
-
-          true ->
-            {:reply, {:miss, :expired}, nil}
-        end
-
-      [] ->
-        {:reply, {:miss, :cold}, nil}
+  defp response_if_alive({_, _, expiration_time} = response) do
+    if expiration_time - :os.system_time(:seconds) > 0 do
+      {:hit, response}
+    else
+      {:miss, :expired}
     end
   end
 

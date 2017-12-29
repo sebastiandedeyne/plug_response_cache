@@ -11,13 +11,4 @@ defmodule PlugResponseCache.Store do
   `:never`.
   """
   @callback set(Plug.Conn.t(), DateTime.t() | :never) :: Plug.Conn.t()
-
-  @doc """
-  Clear the cache. Can handle a keyword list of options which can be used as
-  needed.
-
-  The default ETS store can receive a `sync: false` (default) or `sync: true`
-  option to clear the cache synchronously or asynchronously (`call` vs `cast`).
-  """
-  @callback clear(Keyword.t()) :: term
 end
