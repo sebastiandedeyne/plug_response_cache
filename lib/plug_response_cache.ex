@@ -1,4 +1,6 @@
 defmodule PlugResponseCache do
+  @type expire_time :: DateTime.t() | :never
+  @type hit :: {:hit, {Plug.Conn.status(), Plug.Conn.body(), expire_time()}}
   @type miss ::
           {:miss, :cold}
           | {:miss, :expired}
@@ -13,8 +15,14 @@ defmodule PlugResponseCache do
     profile: PlugResponseCache.Profiles.Default
   ]
 
+  @doc """
+  While you can pass options to the plug, it's recommended to configure the
+  response cache through the application's config, so the response cache has the
+  necessary processes running.
+  """
   def init(opts) do
     @defaults
+    |> Keyword.merge(Application.get_all_env(:plug_response_cache))
     |> Keyword.merge(opts)
     |> Enum.into(%{})
   end
@@ -57,10 +65,10 @@ defmodule PlugResponseCache do
   end
 
   defp miss(conn, reason) do
-    put_private(conn, :response_cache, {:miss, reason})
+    put_private(conn, :plug_response_cache, {:miss, reason})
   end
 
   defp hit(conn, expires) do
-    put_private(conn, :response_cache, {:hit, expires})
+    put_private(conn, :plug_response_cache, {:hit, expires})
   end
 end

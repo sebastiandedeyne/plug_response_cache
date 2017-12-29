@@ -18,7 +18,7 @@ defmodule PlugResponseCacheTest do
     first_conn = send_resp(first_conn)
 
     # After sending, we expect the response to be written to the cache.
-    assert first_conn.private[:response_cache] == {:miss, :cold}
+    assert first_conn.private[:plug_response_cache] == {:miss, :cold}
 
     second_conn =
       build_conn("GET", "/the-default-profile-caches-a-succesful-get-request")
@@ -28,7 +28,7 @@ defmodule PlugResponseCacheTest do
     # Since we're expecting to have something in the cache, the response should
     # already be sent, because the response cache should halt the plug pipeline.
     assert second_conn.state == :sent
-    assert second_conn.private[:response_cache] == {:hit, :never}
+    assert second_conn.private[:plug_response_cache] == {:hit, :never}
     assert second_conn.resp_body == "Foo"
   end
 
@@ -41,14 +41,14 @@ defmodule PlugResponseCacheTest do
       |> PlugResponseCache.call(options)
       |> send_resp()
 
-    assert first_conn.private[:response_cache] == {:miss, :disabled}
+    assert first_conn.private[:plug_response_cache] == {:miss, :disabled}
 
     second_conn =
       build_conn("GET", "/the-response-cache-does-nothing-when-disabled")
       |> resp(200, "Bar")
       |> PlugResponseCache.call(options)
 
-    assert second_conn.private[:response_cache] == {:miss, :disabled}
+    assert second_conn.private[:plug_response_cache] == {:miss, :disabled}
     assert second_conn.resp_body == "Bar"
   end
 
@@ -61,7 +61,7 @@ defmodule PlugResponseCacheTest do
       |> PlugResponseCache.call(options)
       |> send_resp()
 
-    assert conn.private[:response_cache] == {:miss, :request_rejected}
+    assert conn.private[:plug_response_cache] == {:miss, :request_rejected}
   end
 
   test "the default profile only caches successful requests" do
@@ -73,7 +73,7 @@ defmodule PlugResponseCacheTest do
       |> PlugResponseCache.call(options)
       |> send_resp()
 
-    assert conn.private[:response_cache] == {:miss, :response_rejected}
+    assert conn.private[:plug_response_cache] == {:miss, :response_rejected}
   end
 
   test "the default profile accepts an expiration time in minutes" do
@@ -85,14 +85,14 @@ defmodule PlugResponseCacheTest do
       |> PlugResponseCache.call(options)
       |> send_resp()
 
-    assert first_conn.private[:response_cache] == {:miss, :cold}
+    assert first_conn.private[:plug_response_cache] == {:miss, :cold}
 
     second_conn =
       build_conn("GET", "/the-default-profile-accepts-an-expiration-time-in-minutes")
       |> resp(200, "Bar")
       |> PlugResponseCache.call(options)
 
-    {:hit, expires} = second_conn.private[:response_cache]
+    {:hit, expires} = second_conn.private[:plug_response_cache]
 
     expires_from_now = expires - :os.system_time(:seconds)
 
@@ -108,7 +108,7 @@ defmodule PlugResponseCacheTest do
       |> PlugResponseCache.call(options)
       |> send_resp()
 
-    assert first_conn.private[:response_cache] == {:miss, :cold}
+    assert first_conn.private[:plug_response_cache] == {:miss, :cold}
 
     second_conn =
       build_conn("GET", "/the-response-cache-returns-a-miss-if-the-hit-is-expired")
@@ -116,7 +116,7 @@ defmodule PlugResponseCacheTest do
       |> PlugResponseCache.call(options)
       |> send_resp()
 
-    assert second_conn.private[:response_cache] == {:miss, :expired}
+    assert second_conn.private[:plug_response_cache] == {:miss, :expired}
     assert second_conn.resp_body == "Bar"
   end
 

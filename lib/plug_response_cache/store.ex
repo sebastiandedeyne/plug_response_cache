@@ -3,12 +3,12 @@ defmodule PlugResponseCache.Store do
   Retrieve a response from the cache. If nothing was found, return a tuple with
   `:miss` and a reason, e.g. `{:miss, :cold}` or `{:miss, :expired}`.
   """
-  @callback get(Plug.Conn.t()) :: Plug.Conn.t() | PlugResponseCache.miss()
+  @callback get(Plug.Conn.t()) :: PlugResponseCache.hit() | PlugResponseCache.miss()
 
   @doc """
   Save a response to the cache. The second argument is an expiration time in the
   UTC timezone. If a response should never expire, the expiration time is
   `:never`.
   """
-  @callback set(Plug.Conn.t(), DateTime.t() | :never) :: Plug.Conn.t()
+  @callback set(Plug.Conn.t(), PlugResponseCache.expire_time()) :: Plug.Conn.t()
 end
