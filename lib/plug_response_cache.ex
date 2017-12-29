@@ -29,8 +29,8 @@ defmodule PlugResponseCache do
     end
   end
 
-  defp send_cached(conn, %{profile: profile} = options) do
-    case Application.get_env(:plug_response_cache, :store).get(conn) do
+  defp send_cached(conn, %{profile: profile, store: store} = options) do
+    case store.get(conn) do
       {:hit, {status, body, expires}} ->
         conn
         |> hit(expires)
@@ -48,11 +48,11 @@ defmodule PlugResponseCache do
     end
   end
 
-  defp cache_response(conn, miss_reason, %{profile: profile} = options) do
+  defp cache_response(conn, miss_reason, %{profile: profile, store: store} = options) do
     expires = profile.expires(conn, options)
 
     conn
-    |> Application.get_env(:plug_response_cache, :store).set(expires)
+    |> store.set(expires)
     |> miss(miss_reason)
   end
 
