@@ -166,7 +166,7 @@ Pull requests are welcome!
 
 ## Credits
 
-This package is based on the Laravel (PHP) [response cache package](https://github.com/spatie/laravel-responsecache) by [https://spatie.be](Spatie).
+This package is based on the Laravel (PHP) [response cache package](https://github.com/spatie/laravel-responsecache) by [Spatie](https://spatie.be).
 
 - [Sebastian De Deyne](https://github.com/sebastiandedeyne)
 - [All Contributors](../../contributors)
