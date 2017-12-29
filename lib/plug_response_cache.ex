@@ -1,4 +1,61 @@
 defmodule PlugResponseCache do
+  @moduledoc """
+  The response cache plug can cache an entire response body for a set amount of
+  time.
+
+  To enable the cache, add the plug to your pipeline as early as possible.
+  Here's what that looks like in a clean Phoenix installation:
+
+      pipeline :browser do
+        plug(:accepts, ["html"])
+        plug(PlugResponseCache)
+        plug(:fetch_session)
+        plug(:fetch_flash)
+        plug(:protect_from_forgery)
+        plug(:put_secure_browser_headers)
+      end
+
+  The plug should be configured with the `:plug_response_cache` config key. This
+  belongs in your application's configuration file:
+
+      config :plug_response_cache,
+        enabled: false,
+        store: MyApp.ResponseCache.MyCustomStore
+        profile: MyApp.ResponseCache.MyCustomProfile
+
+  - `enabled`: Enables or disables the response cache entirely (default: `true`)
+  - `store`: A custom cache store — a module that implements
+  `PlugResponseCache.Store` callbacks (default: `PlugResponseCache.Stores.Ets`)
+  - `profile`: A custom cache profile — a module that implements
+  `PlugResponseCache.Profile` callbacks (default:
+  `PlugResponseCache.Profiles.Default`)
+  - `debug`: Logs the response cache's result on every request when `true`
+  (default: `false`)
+
+  Since every option has a default, the response cache will also work without
+  specifying any custom configuration.
+
+  Options are also passed to the cache profile, so if a profile has options
+  simply add them to the list. For example, the default profile
+  (`PlugResponseCache.Profiles.Default`) has an `expiration_time` option to
+  determine for how many minutes the response should be cached.
+
+      config :plug_response_cache,
+        expiration_time: 5
+
+  It's also possible to pass options to the plug. This is useful for enabling or
+  disabling the response cache on the fly, or for toggling the debug mode.
+
+      pipeline :browser do
+        # ...
+        plug(PlugResponseCache, debug: true)
+        # ...
+      end
+
+  It's not recommended to configure the profile & store like this because they
+  might require a supervisor, which needs to be known ahead of time.
+  """
+
   @type expire_time :: DateTime.t() | :never
   @type hit :: {:hit, {Plug.Conn.status(), Plug.Conn.body(), expire_time()}}
   @type miss ::
@@ -11,6 +68,7 @@ defmodule PlugResponseCache do
 
   @defaults [
     enabled: true,
+    debug: false,
     store: PlugResponseCache.Stores.Ets,
     profile: PlugResponseCache.Profiles.Default
   ]
@@ -27,13 +85,13 @@ defmodule PlugResponseCache do
     |> Enum.into(%{})
   end
 
-  def call(conn, %{enabled: false}), do: miss(conn, :disabled)
+  def call(conn, %{enabled: false}), do: mark_miss(conn, :disabled)
 
   def call(conn, opts) do
     if opts.profile.cache_request?(conn, opts) do
       send_cached(conn, opts)
     else
-      miss(conn, :request_rejected)
+      mark_miss(conn, :request_rejected)
     end
   end
 
@@ -41,7 +99,7 @@ defmodule PlugResponseCache do
     case opts.store.get(conn) do
       {:hit, {status, body, expires}} ->
         conn
-        |> hit(expires)
+        |> mark_hit(expires)
         |> send_resp(status, body)
         |> halt()
 
@@ -50,7 +108,7 @@ defmodule PlugResponseCache do
           if opts.profile.cache_response?(conn, opts) do
             cache_response(conn, reason, opts)
           else
-            miss(conn, :response_rejected)
+            mark_miss(conn, :response_rejected)
           end
         end)
     end
@@ -61,14 +119,14 @@ defmodule PlugResponseCache do
 
     conn
     |> opts.store.set(expires)
-    |> miss(miss_reason)
+    |> mark_miss(miss_reason)
   end
 
-  defp miss(conn, reason) do
+  defp mark_miss(conn, reason) do
     put_private(conn, :plug_response_cache, {:miss, reason})
   end
 
-  defp hit(conn, expires) do
+  defp mark_hit(conn, expires) do
     put_private(conn, :plug_response_cache, {:hit, expires})
   end
 end

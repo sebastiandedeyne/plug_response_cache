@@ -1,4 +1,9 @@
 defmodule PlugResponseCache.Stores.Ets do
+  @moduledoc """
+  The ETS store, which is used by default, is a `GenServer` that stores the
+  response bodies in an [ETS](http://erlang.org/doc/man/ets.html) table.
+  """
+
   @behaviour PlugResponseCache.Store
 
   use GenServer
