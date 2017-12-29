@@ -94,7 +94,7 @@ defmodule PlugResponseCacheTest do
 
     {:hit, expires} = second_conn.private[:plug_response_cache]
 
-    expires_from_now = expires - :os.system_time(:seconds)
+    expires_from_now = DateTime.diff(expires, DateTime.utc_now())
 
     assert round(expires_from_now / 60) == 5
   end

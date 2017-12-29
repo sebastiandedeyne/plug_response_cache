@@ -20,8 +20,12 @@ defmodule PlugResponseCache.Profiles.Default do
   def cache_response?(%Conn{status: status}, _opts), do: status < 400
   def cache_response?(_conn, _opts), do: true
 
-  def expires(_conn, %{expiration_time: expiration_time}),
-    do: :os.system_time(:seconds) + expiration_time * 60
+  def expires(_conn, %{expiration_time: expiration_time}), do: minutes_from_now(expiration_time)
+  def expires(_conn, _options), do: :never
 
-  def expires(_conn, _opts), do: :never
+  defp minutes_from_now(minutes) do
+    unix = DateTime.to_unix(DateTime.utc_now()) + minutes * 60
+
+    DateTime.from_unix!(unix)
+  end
 end

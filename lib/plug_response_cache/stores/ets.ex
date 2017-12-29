@@ -40,7 +40,7 @@ defmodule PlugResponseCache.Stores.Ets do
   defp response_if_alive({_, _, :never} = response), do: {:hit, response}
 
   defp response_if_alive({_, _, expiration_time} = response) do
-    if expiration_time - :os.system_time(:seconds) > 0 do
+    if DateTime.diff(expiration_time, DateTime.utc_now()) > 0 do
       {:hit, response}
     else
       {:miss, :expired}

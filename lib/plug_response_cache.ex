@@ -85,13 +85,13 @@ defmodule PlugResponseCache do
     |> Enum.into(%{})
   end
 
-  def call(conn, %{enabled: false}), do: mark_miss(conn, :disabled)
+  def call(conn, %{enabled: false} = opts), do: mark_miss(conn, :disabled, opts.debug)
 
   def call(conn, opts) do
     if opts.profile.cache_request?(conn, opts) do
       send_cached(conn, opts)
     else
-      mark_miss(conn, :request_rejected)
+      mark_miss(conn, :request_rejected, opts.debug)
     end
   end
 
@@ -99,7 +99,7 @@ defmodule PlugResponseCache do
     case opts.store.get(conn) do
       {:hit, {status, body, expires}} ->
         conn
-        |> mark_hit(expires)
+        |> mark_hit(expires, opts.debug)
         |> send_resp(status, body)
         |> halt()
 
@@ -108,7 +108,7 @@ defmodule PlugResponseCache do
           if opts.profile.cache_response?(conn, opts) do
             cache_response(conn, reason, opts)
           else
-            mark_miss(conn, :response_rejected)
+            mark_miss(conn, :response_rejected, opts.debug)
           end
         end)
     end
@@ -119,14 +119,25 @@ defmodule PlugResponseCache do
 
     conn
     |> opts.store.set(expires)
-    |> mark_miss(miss_reason)
+    |> mark_miss(miss_reason, opts.debug)
   end
 
-  defp mark_miss(conn, reason) do
+  defp mark_miss(conn, reason, debug) do
+    if debug, do: debug(:miss, reason)
     put_private(conn, :plug_response_cache, {:miss, reason})
   end
 
-  defp mark_hit(conn, expires) do
+  defp mark_hit(conn, expires, debug) do
+    if debug, do: debug(:hit, expires)
     put_private(conn, :plug_response_cache, {:hit, expires})
   end
+
+  defp debug(:miss, reason),
+    do: IO.puts("PlugResponseCache MISS - " <> Atom.to_string(reason))
+
+  defp debug(:hit, :never),
+    do: IO.puts("PlugResponseCache HIT - cached forever")
+
+  defp debug(:hit, expire_time),
+    do: IO.puts("PlugResponseCache HIT - expires " <> DateTime.to_iso8601(expire_time))
 end
