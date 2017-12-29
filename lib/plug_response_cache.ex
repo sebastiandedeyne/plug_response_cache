@@ -1,8 +1,9 @@
 defmodule PlugResponseCache do
-  @type miss :: {:miss, :cold}
-              | {:miss, :expired}
-              | {:miss, :request_rejected}
-              | {:miss, :response_rejected}
+  @type miss ::
+          {:miss, :cold}
+          | {:miss, :expired}
+          | {:miss, :request_rejected}
+          | {:miss, :response_rejected}
 
   import Plug.Conn
 
