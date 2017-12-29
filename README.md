@@ -6,17 +6,6 @@
 
 A highly-configurable plug to cache entire responses. The library allows you to configure _if_, _how long_ and _where_ a response will be cached.
 
-```elixir
-pipeline :browser do
-  plug(:accepts, ["html"])
-  plug(PlugResponseCache)
-  plug(:fetch_session)
-  plug(:fetch_flash)
-  plug(:protect_from_forgery)
-  plug(:put_secure_browser_headers)
-end
-```
-
 ## Installation
 
 The package can be installed by adding `plug_response_cache` to your list of dependencies in `mix.exs`:
