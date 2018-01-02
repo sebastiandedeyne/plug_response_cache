@@ -69,9 +69,9 @@ end
 
 ### Profiles
 
-Profiles are the heart of PlugResponseCache's configurability. They determine _if_ and for _how long_ a response should be cached. The default profile caches all succesfull GET requests for a configurable amount of minutes. For a full example implementation, take a look at the [`PlugResponseCache.Profiles.Default` module](https://github.com/sebastiandedeyne/plug_response_cache/blob/master/lib/plug_response_cache/profiles/default.ex).
+Profiles are the heart of PlugResponseCache's configurability. They determine _if_ and _how long_ a response should be cached. The default profile caches all succesfull GET requests for a configurable amount of minutes. For a full example implementation, take a look at the [`PlugResponseCache.Profiles.Default`](https://github.com/sebastiandedeyne/plug_response_cache/blob/master/lib/plug_response_cache/profiles/default.ex) module.
 
-With `cache_request?` you can choose whether or not to retrieve a cached response, or cache it if the cache is cold. Here we'll set up our profile to only cache GET requests.
+With `cache_request?` you can choose whether or not to pass the request through the response cache. If `true`, the response will be retrieved from the cache, or stored if nothing's there yet. In the following example we'll set up our profile to only cache GET requests.
 
 ```elixir
 defmodule MyCacheProfile do
@@ -103,7 +103,7 @@ defmodule MyCacheProfile do
 end
 ```
 
-With `expires` we can determine at what time the cached response will be expired. If we want to cache the response forever, we can return a `:never` tuple. The default profile accepts an `expire_time` option set in minutes.
+With `expires` we can determine at what time the cached response will expire. If you the response to be cached forever, you can return a `:never` atom. The default profile accepts an `expire_time` option set in minutes.
 
 ```elixir
 defmodule MyCacheProfile do
@@ -127,15 +127,15 @@ config :plug_response_cache,
   expiration_time: 5
 ```
 
-Refer to the [`Profile` behaviour's documentation](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Profile.html) for a more detailed explanation of the various callbacks.
+Refer to the [`Profile` behaviour's documentation](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Profile.html) for a more thorough explanation of the various callbacks.
 
 ### Stores
 
 Stores determine _where_ a response should be cached. By default, responses are stored in an ETS table.
 
-For a full example implementation, take a look at the [`PlugResponseCache.Stores.Ets` module](https://github.com/sebastiandedeyne/plug_response_cache/blob/master/lib/plug_response_cache/stores/ets.ex).
+For a full example implementation, take a look at the [`PlugResponseCache.Stores.Ets`](https://github.com/sebastiandedeyne/plug_response_cache/blob/master/lib/plug_response_cache/stores/ets.ex) module.
 
-Refer to the [`Store` behaviour's documentation](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Store.html) for a more detailed explanation of the various callbacks.
+Refer to the [`Store` behaviour's documentation](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Store.html) for a more thorough explanation of the various callbacks.
 
 ## Changelog
 
