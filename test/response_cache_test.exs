@@ -20,6 +20,8 @@ defmodule PlugResponseCacheTest do
     # After sending, we expect the response to be written to the cache.
     assert first_conn.private[:plug_response_cache] == {:miss, :cold}
 
+    :timer.sleep(100)
+
     second_conn =
       build_conn("GET", "/the-default-profile-caches-a-succesful-get-request")
       |> resp(200, "Bar")
@@ -42,6 +44,8 @@ defmodule PlugResponseCacheTest do
       |> send_resp()
 
     assert first_conn.private[:plug_response_cache] == {:miss, :disabled}
+
+    :timer.sleep(100)
 
     second_conn =
       build_conn("GET", "/the-response-cache-does-nothing-when-disabled")
@@ -87,6 +91,8 @@ defmodule PlugResponseCacheTest do
 
     assert first_conn.private[:plug_response_cache] == {:miss, :cold}
 
+    :timer.sleep(100)
+
     second_conn =
       build_conn("GET", "/the-default-profile-accepts-an-expiration-time-in-minutes")
       |> resp(200, "Bar")
@@ -109,6 +115,8 @@ defmodule PlugResponseCacheTest do
       |> send_resp()
 
     assert first_conn.private[:plug_response_cache] == {:miss, :cold}
+
+    :timer.sleep(100)
 
     second_conn =
       build_conn("GET", "/the-response-cache-returns-a-miss-if-the-hit-is-expired")
