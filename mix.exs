@@ -1,7 +1,7 @@
 defmodule PlugResponseCache.MixProject do
   use Mix.Project
 
-  @version "0.0.3"
+  @version "0.1.0"
 
   def project do
     [
