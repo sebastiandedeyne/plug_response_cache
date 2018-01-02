@@ -20,11 +20,11 @@ end
 
 ## Usage
 
-Below is a brief overview on how to use `PlugResponseCache`. Full documentation can be found at [https://hexdocs.pm/plug_response_cache/](https://hexdocs.pm/plug_response_cache/).
+Below is a brief overview of `PlugResponseCache`'s usage. Full documentation is available on [Hex](https://hexdocs.pm/plug_response_cache/).
 
 ### Basic usage
 
-After installing the library, add the plug to your pipeline as early as possible. Here's what that looks like in a clean Phoenix installation:
+After installing the `:plug_response_cache` library, add the `PlugResponseCache` plug to your pipeline as early as possible. Here's what that looks like in a clean Phoenix installation:
 
 ```elixir
 pipeline :browser do
@@ -37,7 +37,7 @@ pipeline :browser do
 end
 ```
 
-And that's it! For basic usage at least. The default configuration will cache all successful GET requests in an ETS table forever. If you want a different configuration, read on.
+And that's it! For basic usage at least. The default configuration will cache all successful GET requests in an ETS table, forever. If you need a different configuration, read on.
 
 ### Configuration
 
@@ -57,13 +57,6 @@ config :plug_response_cache,
 
 Since every option has a default, the response cache will also work without specifying any custom configuration.
 
-Options are also passed to the cache profile, so if a profile has options simply add them to the list. For example, the default profile (`PlugResponseCache.Profiles.Default`) has an `expiration_time` option to determine for how many minutes the response should be cached.
-
-```elixir
-config :plug_response_cache,
-  expiration_time: 5
-```
-
 It's also possible to pass options to the plug. This is useful for enabling or disabling the response cache on the fly, or for toggling the debug mode.
 
 ```elixir
@@ -73,8 +66,6 @@ pipeline :browser do
   # ...
 end
 ```
-
-It's not recommended to configure the profile & store like this because they might require a supervisor, which needs to be known ahead of time.
 
 ### Profiles
 
@@ -127,6 +118,13 @@ defmodule MyCacheProfile do
 
   def expires(_conn, _opts), do: :never
 end
+```
+
+The application configuration is also passed to the cache profile, so if a profile has options simply add them to the list. For example, the default profile (`PlugResponseCache.Profiles.Default`) has an `expiration_time` option to determine for how many minutes the response should be cached.
+
+```elixir
+config :plug_response_cache,
+  expiration_time: 5
 ```
 
 Refer to the [`Profile` behaviour's documentation](https://hexdocs.pm/plug_response_cache/PlugResponseCache.Profile.html) for a more detailed explanation of the various callbacks.
