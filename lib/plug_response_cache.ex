@@ -64,6 +64,7 @@ defmodule PlugResponseCache do
           | {:miss, :request_rejected}
           | {:miss, :response_rejected}
 
+  require Logger
   import Plug.Conn
 
   @defaults [
@@ -85,13 +86,13 @@ defmodule PlugResponseCache do
     |> Enum.into(%{})
   end
 
-  def call(conn, %{enabled: false} = opts), do: mark_miss(conn, :disabled, opts.debug)
+  def call(conn, %{enabled: false} = opts), do: mark_miss(conn, :disabled, opts)
 
   def call(conn, opts) do
     if opts.profile.cache_request?(conn, opts) do
       send_cached(conn, opts)
     else
-      mark_miss(conn, :request_rejected, opts.debug)
+      mark_miss(conn, :request_rejected, opts)
     end
   end
 
@@ -99,7 +100,7 @@ defmodule PlugResponseCache do
     case opts.store.get(conn) do
       {:hit, {status, body, expires}} ->
         conn
-        |> mark_hit(expires, opts.debug)
+        |> mark_hit(expires, opts)
         |> send_resp(status, body)
         |> halt()
 
@@ -108,7 +109,7 @@ defmodule PlugResponseCache do
           if opts.profile.cache_response?(conn, opts) do
             cache_response(conn, reason, opts)
           else
-            mark_miss(conn, :response_rejected, opts.debug)
+            mark_miss(conn, :response_rejected, opts)
           end
         end)
     end
@@ -119,25 +120,35 @@ defmodule PlugResponseCache do
 
     conn
     |> opts.store.set(expires)
-    |> mark_miss(miss_reason, opts.debug)
+    |> mark_miss(miss_reason, opts)
   end
 
-  defp mark_miss(conn, reason, debug) do
-    if debug, do: debug(conn, :miss, reason)
-    put_private(conn, :plug_response_cache, {:miss, reason})
+  defp mark_miss(conn, reason, %{debug: debug}) do
+    conn
+    |> log(debug, :miss, reason)
+    |> put_private(:plug_response_cache, {:miss, reason})
   end
 
-  defp mark_hit(conn, expires, debug) do
-    if debug, do: debug(conn, :hit, expires)
-    put_private(conn, :plug_response_cache, {:hit, expires})
+  defp mark_hit(conn, expires, %{debug: debug}) do
+    conn
+    |> log(debug, :hit, expires)
+    |> put_private(:plug_response_cache, {:hit, expires})
   end
 
-  defp debug(conn, :miss, reason),
-    do: IO.puts("PlugResponseCache MISS " <> conn.request_path <> " - " <> Atom.to_string(reason))
+  defp log(conn, false, _result, _reason), do: conn
 
-  defp debug(conn, :hit, :never),
-    do: IO.puts("PlugResponseCache HIT " <> conn.request_path <> " - cached forever")
+  defp log(conn, true, :miss, reason) do
+    Logger.debug("PlugResponseCache {:miss, :" <> Atom.to_string(reason) <> "} " <> conn.request_path)
+    conn
+  end
 
-  defp debug(conn, :hit, expire_time),
-    do: IO.puts("PlugResponseCache HIT " <> conn.request_path <> " - expires " <> DateTime.to_iso8601(expire_time))
+  defp log(conn, true, :hit, :never) do
+    Logger.debug("PlugResponseCache {:hit, :never} " <> conn.request_path)
+    conn
+  end
+
+  defp log(conn, true, :hit, expire_time) do
+    Logger.debug("PlugResponseCache {:hit, " <> DateTime.to_iso8601(expire_time) <> "} " <> conn.request_path)
+    conn
+  end
 end
