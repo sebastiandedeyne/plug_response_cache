@@ -123,21 +123,21 @@ defmodule PlugResponseCache do
   end
 
   defp mark_miss(conn, reason, debug) do
-    if debug, do: debug(:miss, reason)
+    if debug, do: debug(conn, :miss, reason)
     put_private(conn, :plug_response_cache, {:miss, reason})
   end
 
   defp mark_hit(conn, expires, debug) do
-    if debug, do: debug(:hit, expires)
+    if debug, do: debug(conn, :hit, expires)
     put_private(conn, :plug_response_cache, {:hit, expires})
   end
 
-  defp debug(:miss, reason),
-    do: IO.puts("PlugResponseCache MISS - " <> Atom.to_string(reason))
+  defp debug(conn, :miss, reason),
+    do: IO.puts("PlugResponseCache MISS " <> conn.request_path <> " - " <> Atom.to_string(reason))
 
-  defp debug(:hit, :never),
-    do: IO.puts("PlugResponseCache HIT - cached forever")
+  defp debug(conn, :hit, :never),
+    do: IO.puts("PlugResponseCache HIT " <> conn.request_path <> " - cached forever")
 
-  defp debug(:hit, expire_time),
-    do: IO.puts("PlugResponseCache HIT - expires " <> DateTime.to_iso8601(expire_time))
+  defp debug(conn, :hit, expire_time),
+    do: IO.puts("PlugResponseCache HIT " <> conn.request_path <> " - expires " <> DateTime.to_iso8601(expire_time))
 end
