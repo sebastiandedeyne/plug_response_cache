@@ -13,7 +13,10 @@ defmodule PlugResponseCache.Stores.Ets do
   end
 
   def get(conn) do
-    GenServer.call(__MODULE__, {:get, conn.request_path})
+    case :ets.lookup(:response_cache, conn.request_path) do
+      [{_, response} | _] -> response_if_alive(response)
+      [] -> {:miss, :cold}
+    end
   end
 
   def set(conn, expires) do
@@ -21,20 +24,11 @@ defmodule PlugResponseCache.Stores.Ets do
     conn
   end
 
-  def clear, do: clear(sync: false)
-  def clear(sync: false), do: GenServer.cast(__MODULE__, {:clear})
-  def clear(sync: true), do: GenServer.call(__MODULE__, {:clear})
+  def clear, do: :ets.delete_all_objects(:response_cache)
 
   def init(:ok) do
     :ets.new(:response_cache, [:set, :protected, :named_table])
     {:ok, nil}
-  end
-
-  def handle_call({:get, path}, _from, nil) do
-    case :ets.lookup(:response_cache, path) do
-      [{_, response} | _] -> {:reply, response_if_alive(response), nil}
-      [] -> {:reply, {:miss, :cold}, nil}
-    end
   end
 
   defp response_if_alive({_, _, :never} = response), do: {:hit, response}
@@ -47,18 +41,8 @@ defmodule PlugResponseCache.Stores.Ets do
     end
   end
 
-  def handle_call({:clear}, nil) do
-    :ets.delete_all_objects(:response_cache)
-    {:ok, nil}
-  end
-
   def handle_cast({:set, path, {status, body, expires}}, nil) do
     :ets.insert(:response_cache, {path, {status, body, expires}})
-    {:noreply, nil}
-  end
-
-  def handle_cast({:clear}, nil) do
-    :ets.delete_all_objects(:response_cache)
     {:noreply, nil}
   end
 end
